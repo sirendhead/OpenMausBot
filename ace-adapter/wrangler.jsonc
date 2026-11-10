@@ -1,0 +1,17 @@
+{
+  "name": "mausbot-ace-adapter",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "vars": {
+    "MAUSBOT_BASE_URL": "https://REPLACE-WITH-YOUR-MAUSBOT-HOST",
+    "MAUSBOT_BOT_ID": "REPLACE-WITH-BOT-ID",
+    "ACE_CALLBACK_ORIGIN": "https://REPLACE-WITH-ACE-PUBLIC-URL"
+  },
+  "kv_namespaces": [{ "binding": "STATE", "id": "REPLACE-WITH-KV-NAMESPACE-ID" }],
+  "queues": {
+    "producers": [{ "binding": "JOBS", "queue": "mausbot-ace-jobs" }],
+    "consumers": [{ "queue": "mausbot-ace-jobs", "max_batch_size": 1, "max_retries": 3 }]
+  },
+  "observability": { "enabled": true }
+}
