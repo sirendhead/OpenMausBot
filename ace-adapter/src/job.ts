@@ -23,8 +23,22 @@ const pick = (arr: number[], n: number) => arr[Math.min(n, arr.length - 1)]
 
 const TIMEOUT_TEXT = 'MausBot did not finish before the ACE deadline. Check the conversation in MausBot; the reply will not be posted here.'
 
+const MAX_REPLY_CHARS = 16000
+const MAX_BODY_BYTES = 60 * 1024
+const TRUNC = " ...(truncated; see the full reply in MausBot)"
+
+/** ACE rejects callbacks over 16000 chars or 64 KB (413, final), so cut here rather than lose the reply. */
+export function fitReply(text: string): string {
+  const size = (t: string) => new TextEncoder().encode(JSON.stringify({ status: 'completed', text: t })).length
+  if (text.length <= MAX_REPLY_CHARS && size(text) <= MAX_BODY_BYTES) return text
+  let n = Math.min(text.length, MAX_REPLY_CHARS - TRUNC.length)
+  let out = text.slice(0, n) + TRUNC
+  while (size(out) > MAX_BODY_BYTES && n > 100) { n = Math.floor(n * 0.8); out = text.slice(0, n) + TRUNC }
+  return out
+}
+
 function finish(job: Job, status: 'completed' | 'failed', text: string): Step {
-  const t = status === 'failed' ? text.slice(0, 500) : text
+  const t = status === 'failed' ? text.slice(0, 500) : fitReply(text)
   return { next: { phase: 'callback', runId: job.runId, callbackUrl: job.callbackUrl, expiresAt: job.expiresAt, result: { status, text: t }, attempt: 0 }, delaySeconds: 0 }
 }
 

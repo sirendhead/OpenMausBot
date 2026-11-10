@@ -160,6 +160,24 @@ describe('Cloudflare Access / tunnel', () => {
   })
 })
 
+describe('reply size limits', () => {
+  it('truncates a 16001-char reply so the callback is <=16000 chars', async () => {
+    const { env } = makeEnv()
+    const step = await run(send(), env, fakeFetch([J(200, { reply: 'a'.repeat(16001), thread: 't' })]).f)
+    const n = step!.next
+    if (n.phase !== 'callback') throw new Error('expected callback')
+    expect(n.result.text.length).toBeLessThanOrEqual(16000)
+    expect(n.result.text).toMatch(/truncated/)
+  })
+  it('keeps the JSON body under 64 KB for multi-byte text', async () => {
+    const { env } = makeEnv()
+    const step = await run(send(), env, fakeFetch([J(200, { reply: '€'.repeat(15000), thread: 't' })]).f)
+    const n = step!.next
+    if (n.phase !== 'callback') throw new Error('expected callback')
+    expect(new TextEncoder().encode(JSON.stringify(n.result)).length).toBeLessThanOrEqual(64 * 1024)
+  })
+})
+
 describe('poll phase', () => {
   it('202 working repeatedly backs off 5 -> 10 -> 20 -> 30 -> 30', async () => {
     const { env } = makeEnv()
