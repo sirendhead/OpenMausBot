@@ -2,13 +2,13 @@
   "name": "mausbot-ace-adapter",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
-  "workers_dev": false,
+  "workers_dev": true,
   "vars": {
-    "MAUSBOT_BASE_URL": "https://REPLACE-WITH-YOUR-MAUSBOT-HOST",
-    "MAUSBOT_BOT_ID": "REPLACE-WITH-BOT-ID",
-    "ACE_CALLBACK_ORIGIN": "https://REPLACE-WITH-ACE-PUBLIC-URL"
+    "MAUSBOT_BASE_URL": "https://mausbot-hooks.colorverse.dev",
+    "MAUSBOT_BOT_ID": "764ecae1-0510-41f7-b06e-2820a42dba83",
+    "ACE_CALLBACK_ORIGIN": "https://agent-chat-engine-prod.dongpt.workers.dev"
   },
-  "kv_namespaces": [{ "binding": "STATE", "id": "REPLACE-WITH-KV-NAMESPACE-ID" }],
+  "kv_namespaces": [{ "binding": "STATE", "id": "581c59771bbb48b98e6c5122f2823ae2" }],
   "queues": {
     "producers": [{ "binding": "JOBS", "queue": "mausbot-ace-jobs" }],
     "consumers": [{ "queue": "mausbot-ace-jobs", "max_batch_size": 1, "max_retries": 3 }]

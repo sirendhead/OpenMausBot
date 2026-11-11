@@ -1,0 +1,6 @@
+version: 1
+vault_project: mausbot-ace-adapter
+
+secrets:
+  required:
+    - CF_TUNNEL_SETUP_TOKEN_MAUSBOT
