@@ -4,3 +4,5 @@ vault_project: mausbot-ace-adapter
 secrets:
   required:
     - CF_TUNNEL_SETUP_TOKEN_MAUSBOT
+  optional:
+    - ACE_XA_BINDING_SECRET_MAUSBOT
