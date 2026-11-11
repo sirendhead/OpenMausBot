@@ -14,22 +14,24 @@ export async function handleRequest(req: Request, env: Env, now: number = Date.n
   if (raw.length > MAX_BODY) return json(413, { error: 'body_too_large' })
 
   const v = await verifyInbound(raw, req.headers.get('X-Webhook-Signature'), req.headers.get('X-Webhook-Timestamp'), env.ACE_XA_BINDING_SECRET, now)
-  if (v !== 'ok') return json(401, { error: 'unauthorized', code: v })
+  if (v !== 'ok') { console.log(JSON.stringify({ evt: 'inbound_reject', code: v, hasTs: !!req.headers.get('X-Webhook-Timestamp'), hasSecret: !!env.ACE_XA_BINDING_SECRET })); return json(401, { error: 'unauthorized', code: v }) }
 
   let p: Partial<Omit<InvokePayload, 'type'>> & { type?: string }
-  try { p = JSON.parse(raw) } catch { return json(400, { error: 'invalid_json' }) }
+  try { p = JSON.parse(raw) } catch { { console.log(JSON.stringify({ evt: 'inbound_400', code: 'invalid_json' })); return json(400, { error: 'invalid_json' }) } }
 
   if (p.type === 'agent.ping') return json(200, { ok: true, pong: true })
-  if (p.type !== 'agent.invoke') return json(400, { error: 'unsupported_type' })
+  if (p.type !== 'agent.invoke') { console.log(JSON.stringify({ evt: 'inbound_400', code: 'unsupported_type' })); return json(400, { error: 'unsupported_type' }) }
 
   const eventId = req.headers.get('X-Webhook-Event-Id') || p.runId || ''
-  if (!eventId || !p.runId || !p.callbackUrl || !p.expiresAt || !p.message || typeof p.message.text !== 'string') return json(400, { error: 'invalid_payload' })
-  if (!Number.isFinite(Date.parse(p.expiresAt))) return json(400, { error: 'invalid_payload' })
+  if (!eventId || !p.runId || !p.callbackUrl || !p.expiresAt || !p.message || typeof p.message.text !== 'string') { console.log(JSON.stringify({ evt: 'inbound_400', code: 'invalid_payload' })); return json(400, { error: 'invalid_payload' }) }
+  if (!Number.isFinite(Date.parse(p.expiresAt))) { console.log(JSON.stringify({ evt: 'inbound_400', code: 'invalid_payload' })); return json(400, { error: 'invalid_payload' }) }
 
   let cb: URL
-  try { cb = new URL(p.callbackUrl) } catch { return json(400, { error: 'invalid_callback' }) }
-  if (cb.protocol !== 'https:') return json(400, { error: 'invalid_callback' })
-  if (env.ACE_CALLBACK_ORIGIN && cb.origin !== new URL(env.ACE_CALLBACK_ORIGIN).origin) return json(400, { error: 'callback_origin_not_allowed' })
+  try { cb = new URL(p.callbackUrl) } catch { { console.log(JSON.stringify({ evt: 'inbound_400', code: 'invalid_callback' })); return json(400, { error: 'invalid_callback' }) } }
+  if (cb.protocol !== 'https:') { console.log(JSON.stringify({ evt: 'inbound_400', code: 'invalid_callback' })); return json(400, { error: 'invalid_callback' }) }
+  const allowed = (env.ACE_CALLBACK_ORIGIN || '').split(',').map((o) => o.trim()).filter(Boolean).map((o) => new URL(o).origin)
+  console.log(JSON.stringify({ evt: 'inbound_invoke', callbackOrigin: cb.origin }))
+  if (allowed.length && !allowed.includes(cb.origin)) { console.log(JSON.stringify({ evt: 'inbound_400', code: 'callback_origin_not_allowed', callbackOrigin: cb.origin })); return json(400, { error: 'callback_origin_not_allowed' }) }
 
   // Replay guard. KV is eventually consistent; ACE sends each event once, so this is best-effort.
   const seenKey = `evt:${eventId}`

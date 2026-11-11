@@ -8,7 +8,7 @@
   "vars": {
     "MAUSBOT_BASE_URL": "https://mausbot-hooks.colorverse.dev",
     "MAUSBOT_BOT_ID": "764ecae1-0510-41f7-b06e-2820a42dba83",
-    "ACE_CALLBACK_ORIGIN": "https://agent-chat-engine-prod.dongpt.workers.dev"
+    "ACE_CALLBACK_ORIGIN": "https://agent-chat-engine-prod.dongpt.workers.dev,https://chat.colorverse.dev,https://studio.colorverse.dev"
   },
   "kv_namespaces": [{ "binding": "STATE", "id": "581c59771bbb48b98e6c5122f2823ae2" }],
   "queues": {
