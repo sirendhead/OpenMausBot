@@ -2,6 +2,8 @@
   "name": "mausbot-ace-adapter",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "routes": [{ "pattern": "mausbot-adapter.colorverse.dev", "custom_domain": true }],
   "workers_dev": true,
   "vars": {
     "MAUSBOT_BASE_URL": "https://mausbot-hooks.colorverse.dev",
